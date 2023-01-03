@@ -11,7 +11,7 @@ public class MainScript : MonoBehaviour
     public string cs_kernel_name = "TestKernel";
 
     public int vertexCount = 9;
-    const int vertexStride = 3*(4*sizeof(float)) + sizeof(float);
+    const int vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
     
 
     // Initialize variables and objects

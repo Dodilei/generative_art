@@ -11,7 +11,7 @@ Shader "Meta/MainShader"
 		float4 vertex : SV_POSITION;
 		float width : TEXCOORD0;
 		float4 color : TEXCOORD1;
-		float4 adjancency : TEXCOORD2;
+		float2 bisection : TEXCOORD2;
 	};
 
 	// struct used between VS and GS
