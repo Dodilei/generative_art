@@ -37,6 +37,9 @@ public class MainScript : MonoBehaviour
     // Awake is always called before Start
     void Awake()
     {
+        // Loop condition
+        vertexCount = vertexCount + 1;
+
         // Create new material containing main shader pass
 		_material = new Material( Shader.Find( shader_id ) );
 
@@ -52,7 +55,8 @@ public class MainScript : MonoBehaviour
 
 
         // change this to IDs
-        _computeShader.SetVector( "_f4parameter1", new Vector4(vertexCount,0.25f,0.25f,1f) );
+        _computeShader.SetFloat( "_f1parameter1", (float) vertexCount-1 );
+        _computeShader.SetVector( "_f4parameter1", new Vector4(vertexCount-1,0.25f,0.25f,1f) );
         _computeShader.SetVector( "_f4parameter2", new Vector4(0.75f,1f,0.9f,0.85f)     );
         _computeShader.SetVector( "_f4parameter3", new Vector4(0f,0.35f,0.65f,0.7f)     );
 
@@ -63,9 +67,16 @@ public class MainScript : MonoBehaviour
 		_material.SetBuffer( ShaderIDs.vertices, vertexBuffer );
 
 		// Start CS (dim [vertexCount, 1, 1]) and fill vertex buffer
-		_computeShader.Dispatch( CSKernelMain, vertexCount, 1, 1 );
+		_computeShader.Dispatch( CSKernelMain, vertexCount-1, 1, 1 );
+        
         // Start bisection calculator
-        _computeShader.Dispatch( CSKernelHelper, vertexCount, 1, 1 );
+        _computeShader.Dispatch( CSKernelHelper, vertexCount-1, 1, 1 );
+
+        // Start loop maker
+        int CSLoopKernel = _computeShader.FindKernel( "LoopCloser" );
+        _computeShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
+        _computeShader.Dispatch( CSLoopKernel, 1, 1, 1 );
+        
     }
 
     void OnDestroy()
