@@ -1,5 +1,6 @@
 ﻿#pragma kernel TestKernel
 #pragma kernel Blob4Gen
+#pragma kernel BisecCalc
 
 #define TAU 6.2831852
 
