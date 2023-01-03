@@ -20,6 +20,7 @@ Shader "Meta/MainShader"
 		float4 vertex : SV_POSITION;
 		float width : TEXCOORD0;
 		float4 color : TEXCOORD1;
+		float2 bisection : TEXCOORD2;
 	};
 	
 	// struct used between GS and FS
@@ -47,6 +48,7 @@ Shader "Meta/MainShader"
 		o.vertex = UnityObjectToClipPos( _Vertices[ vi ].vertex );
 		o.width = _Vertices[ vi ].width;
 		o.color = _Vertices[ vi ].color;
+		o.bisection = _Vertices[ vi ].bisection;
 
 		return o;
 	}
@@ -57,7 +59,10 @@ Shader "Meta/MainShader"
 	{
 		// calculate normal
 
-		float4 normal = float4(_VecNormal( input[0].vertex, input[1].vertex ),0,0);
+		float2 normal = _VecNormal( input[0].vertex, input[1].vertex );
+
+		float2 alpha1 = input[0].bisection*(input[0].width/dot(input[0].bisection, normal));
+		float2 alpha2 = input[1].bisection*(input[1].width/dot(input[1].bisection, normal));
 
 		// initialize output
 
@@ -67,14 +72,14 @@ Shader "Meta/MainShader"
 		// calculate four vertices of a quad to draw a
 		//:linear-variable width line
 
-		o.vertex = input[0].vertex - input[0].width*normal;
+		o.vertex = input[0].vertex - float4(alpha1,0,0);
 		outstream.Append(o);
-		o.vertex = input[0].vertex + input[0].width*normal;
+		o.vertex = input[0].vertex + float4(alpha1,0,0);
 		outstream.Append(o);
 
-		o.vertex = input[1].vertex - input[1].width*normal;
+		o.vertex = input[1].vertex - float4(alpha2,0,0);
 		outstream.Append(o);
-		o.vertex = input[1].vertex + input[1].width*normal;
+		o.vertex = input[1].vertex + float4(alpha2,0,0);
 		outstream.Append(o);
 
 		// vertex order is important to represent TriStrips

@@ -65,7 +65,7 @@ void Blob4Gen( uint ti : SV_DispatchThreadID )
 	c2v o;
 
 	o.vertex = float4(R*cos(theta),R*sin(theta),0,1);
-	o.width = 0.005;
+	o.width = 0.05;
 	o.color = float4(1,1,1,1);
 	o.bisection = float2(0,0);
 
