@@ -9,6 +9,7 @@ struct c2v
 	float4 vertex : SV_POSITION;
 	float width : TEXCOORD0;
 	float4 color : TEXCOORD1;
+	float4 adjacency : TEXCOORD2;
 };
 
 
@@ -31,6 +32,7 @@ void TestKernel( uint ti : SV_DispatchThreadID )
 	o.vertex = float4( ((float)ti/8)-0.5, ((float)ti % 2)/8, 0, 1 );
 	o.width = (((float)ti % 3)+1)/90;
 	o.color = float4(0,0,1,1);
+	o.adjacency = float4(0,0,0,0);
 	
 	_Vertices[ ti ] = o;
 }
@@ -64,6 +66,7 @@ void Blob4Gen( uint ti : SV_DispatchThreadID )
 	o.vertex = float4(R*cos(theta),R*sin(theta),0,1);
 	o.width = 0.005;
 	o.color = float4(1,1,1,1);
+	o.adjacency = float4(0,0,0,0);
 
 	_Vertices[ ti ] = o;
 }
