@@ -28,6 +28,13 @@ Shader "Meta/MainShader"
 		float4 color : TEXCOORD1;
 	};
 
+	float2 _VecNormal( float2 p1, float2 p2 )
+	{
+		float2 vec = p2.xy - p1.xy;
+		float rdst = rsqrt(vec.x*vec.x + vec.y*vec.y);
+		return rdst*float2(-vec.y, vec.x);
+	}
+
 	// buffer which will be read inside VS
 	StructuredBuffer<c2v> _Vertices;
 	
@@ -49,12 +56,7 @@ Shader "Meta/MainShader"
 	{
 		// calculate normal
 
-		float2 vec = input[1].vertex.xy - input[0].vertex.xy;
-		float rdst = rsqrt(vec.x*vec.x + vec.y*vec.y);
-
-		float4 normal = float4(0,0,0,0);
-		normal.x = -vec.y * rdst;
-		normal.y = vec.x * rdst;
+		float4 normal = float4(_VecNormal( input[0].vertex, input[1].vertex ),0,0);
 
 		// initialize output
 
@@ -84,7 +86,7 @@ Shader "Meta/MainShader"
 	{
 		return fixed4(i.color);
 	}
-	
+
 	ENDCG
 	
 

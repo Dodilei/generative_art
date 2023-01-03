@@ -1,4 +1,7 @@
 ﻿#pragma kernel TestKernel
+#pragma kernel Blob4Gen
+
+#define TAU 6.2831852
 
 // data struc which will be sent to VS
 struct c2v 
@@ -9,7 +12,16 @@ struct c2v
 };
 
 
+
 RWStructuredBuffer<c2v> _Vertices;
+
+float4 _f4parameter1;
+float4 _f4parameter2;
+float4 _f4parameter3;
+
+//float _f1parameter1;
+//float _f1parameter2;
+
 
 [numthreads(1,1,1)]
 void TestKernel( uint ti : SV_DispatchThreadID )
@@ -20,5 +32,38 @@ void TestKernel( uint ti : SV_DispatchThreadID )
 	o.width = (((float)ti % 3)+1)/90;
 	o.color = float4(0,0,1,1);
 	
+	_Vertices[ ti ] = o;
+}
+
+
+float4 npow( float4 x, float y )
+{
+	return sign(x)*pow(abs(x), float4(y,y,y,y));
+}
+
+[numthreads(1,1,1)]
+void Blob4Gen( uint ti : SV_DispatchThreadID )
+{
+	// uses _f4parameter1 as (vertexCount, R0, K, Crisp)
+	// uses _f4parameter2 as scale (normalized)
+	// uses _f4parameter3 as phase (normalized)
+	
+	float theta = (ti*TAU)/(_f4parameter1.x-1);
+
+	float r0 = _f4parameter1.y;
+	float k = _f4parameter1.z;
+	float crisp = _f4parameter1.w;
+
+	float4 scale = _f4parameter2;
+	float4 phase = _f4parameter3;
+
+	float R = r0+0.5*k+(k/8)*dot(scale, npow(cos(theta*float4(1,2,3,4) + TAU*phase), crisp));
+
+	c2v o;
+
+	o.vertex = float4(R*cos(theta),R*sin(theta),0,1);
+	o.width = 0.005;
+	o.color = float4(1,1,1,1);
+
 	_Vertices[ ti ] = o;
 }

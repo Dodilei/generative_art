@@ -10,7 +10,7 @@ public class MainScript : MonoBehaviour
 
     public string cs_kernel_name = "TestKernel";
 
-    const int vertexCount = 9;
+    public int vertexCount = 9;
     const int vertexStride = 2*(4*sizeof(float)) + sizeof(float);
     
 
@@ -49,6 +49,14 @@ public class MainScript : MonoBehaviour
 
         // Link vertex buffer to CS main kernel
 		_computeShader.SetBuffer( CSKernel, ShaderIDs.vertices, vertexBuffer );
+
+        if ( cs_kernel_name == "Blob4Gen" )
+        {
+            // change this to IDs
+            _computeShader.SetVector( "_f4parameter1", new Vector4(vertexCount,0.25f,0.25f,1f) );
+            _computeShader.SetVector( "_f4parameter2", new Vector4(0.75f,1f,0.9f,0.85f)     );
+            _computeShader.SetVector( "_f4parameter3", new Vector4(0f,0.35f,0.65f,0.7f)     );
+        }
 
 		// Link vertex buffer to main shader in material
 		_material.SetBuffer( ShaderIDs.vertices, vertexBuffer );

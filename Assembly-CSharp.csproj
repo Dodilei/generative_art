@@ -660,8 +660,20 @@
     <Reference Include="Unity.VSCode.Editor">
         <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Services.Core.Analytics">
+        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Services.Core.Analytics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Shared.Editor">
+        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VisualScripting.Shared.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.VisualStudio.Editor">
         <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Services.Core.Environments">
+        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Services.Core.Environments.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Timeline.Editor">
+        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
         <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
@@ -690,23 +702,11 @@
     <Reference Include="Unity.Services.Core">
         <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Services.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.VisualScripting.Core">
-        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VisualScripting.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Services.Core.Analytics">
-        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Services.Core.Analytics.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VisualScripting.Shared.Editor">
-        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VisualScripting.Shared.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Services.Core.Environments">
-        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Services.Core.Environments.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline.Editor">
-        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.VisualScripting.State">
         <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VisualScripting.State.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Core">
+        <HintPath>/home/dodilei/Documents/Projects/Generative Art/Generative Art/Library/ScriptAssemblies/Unity.VisualScripting.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
