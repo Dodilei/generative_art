@@ -158,7 +158,7 @@ Camera:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 2
+  m_ClearFlags: 4
   m_BackGroundColor: {r: 0.14150941, g: 0.14150941, b: 0.14150941, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -236,10 +236,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e170bf3e1aba2b8db14aa4283b06e67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  compute_id: MainComputeShader
-  shader_id: Meta/MainShader
-  cs_kernel_name: Blob4Gen
-  vertexCount: 9
+  _vertexCount: 200
+  minRadius: 0.2
+  maxSpan: 0.35
+  crispness: 3
+  _scaleParameter: {x: 0.75, y: 1, z: 0.9, w: 0.85}
+  _phaseParameter: {x: 0, y: 0.35, z: 0.65, w: 0.7}
 --- !u!4 &1622419669
 Transform:
   m_ObjectHideFlags: 0

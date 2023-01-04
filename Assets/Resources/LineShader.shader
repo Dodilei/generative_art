@@ -1,5 +1,5 @@
-﻿
-Shader "Meta/MainShader"
+
+Shader "Custom/LineShader"
 {
 	CGINCLUDE
 			
