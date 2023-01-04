@@ -69,6 +69,11 @@ public abstract class Draw : MonoBehaviour
         //:therefore GS input topology must match it
     }
 
+    public virtual void OnDisable()
+    {
+        this.OnDestroy();
+    }
+
     public virtual void OnDestroy()
     {
         vertexBuffer.Release();
