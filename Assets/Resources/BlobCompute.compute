@@ -16,6 +16,9 @@ struct c2v
 
 RWStructuredBuffer<c2v> _Vertices;
 
+float4 line_width;
+float4 line_color;
+
 float4 parameter;
 float4 scale;
 float4 phase;
@@ -57,8 +60,8 @@ void Blob4Gen( uint ti : SV_DispatchThreadID )
 	c2v o;
 
 	o.vertex = float4(R*cos(theta),R*sin(theta),0,1);
-	o.width = 0.05;
-	o.color = float4(1,1,1,1);
+	o.width = line_width.x;//dot(float4(1,ti,ti*ti,ti*ti*ti), line_width);
+	o.color = line_color;
 	o.bisection = float2(0,0);
 
 	_Vertices[ ti ] = o;
