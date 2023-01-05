@@ -39,7 +39,7 @@ Shader "Custom/LineShader"
 		v2g o;
 
 		o.vertex = UnityObjectToClipPos( _Vertices[ vi ].vertex );
-		o.color = _Vertices[ vi ].color;
+		o.color = (vi % 2)*float4(1, 1, 1, 1);//_Vertices[ vi ].color;
 		o.bisection = _Vertices[ vi ].bisection * _Vertices[ vi ].width;
 
 		return o;
@@ -75,7 +75,10 @@ Shader "Custom/LineShader"
 	// Fragment Shader main function
 	fixed4 Frag( g2f i ) : SV_Target
 	{
-		return fixed4(i.color);
+        float2 position = (2*i.vertex.xy/_ScreenParams.xy)-1;
+        float test = ((2*atan(position.y/(position.x+sqrt(position.x*position.x + position.y*position.y))) + 3.14159265358) % 0.104719755)>0.052359878;
+		return fixed4(test,test,test,1);
+        //return fixed4(1,1,1,1);
 	}
 
 	ENDCG
