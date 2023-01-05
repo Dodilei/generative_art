@@ -76,7 +76,8 @@ Shader "Custom/LineShader"
 	fixed4 Frag( g2f i ) : SV_Target
 	{
         float2 position = (2*i.vertex.xy/_ScreenParams.xy)-1;
-        float test = ((2*atan(position.y/(position.x+length(position))) + 3.14159265358) % 0.104719755) > 0.052359878;
+        //float test = ((2*atan(position.y/(position.x+length(position))) + 3.14159265358) % 0.104719755) > 0.052359878;
+        float test = (cos(180*atan(position.y/(position.x+length(position))))/2 + 0.5) > 0.95;
 		return fixed4(test,test,test,1);
 	}
 
