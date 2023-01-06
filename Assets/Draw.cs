@@ -69,6 +69,11 @@ public abstract class Draw : MonoBehaviour
         //:therefore GS input topology must match it
     }
 
+    public virtual void OnDisable()
+    {
+        this.OnDestroy();
+    }
+
     public virtual void OnDestroy()
     {
         vertexBuffer.Release();
@@ -77,7 +82,50 @@ public abstract class Draw : MonoBehaviour
     }
 }
 
-public class DrawBlob : Draw
+public class DrawLine : Draw
+{
+    public float _lineWidth = 0.05f;
+    protected Vector4 _lineWidthPoly;
+
+    public Vector4 _lineColor = new Vector4(1f,1f,1f,1f);
+
+    protected bool isWidthPoly = false;
+
+    protected Vector4 lineWidth;
+    protected Vector4 lineColor;
+
+    public override void ApplyParamUpdate()
+    {
+        base.ApplyParamUpdate();
+
+        if (this.isWidthPoly)
+        {
+            this.lineWidth = this._lineWidthPoly;
+        }
+        else
+        {
+            this.lineWidth = new Vector4(this._lineWidth, 0f, 0f, 0f);
+        }
+
+        this.lineColor = this._lineColor;
+    }
+
+    public void SetWidthPoly(Vector4 width)
+    {
+        this._lineWidthPoly = width;
+        this.isWidthPoly = true;
+    }
+
+    public override void Awake()
+    {
+        base.Awake();
+
+        computeShader.SetVector("line_width", this.lineWidth);
+        computeShader.SetVector("line_color", this.lineColor);
+    }
+}
+
+public class DrawBlob : DrawLine
 {
     public float minRadius = 0.2f;
     public float maxSpan = 0.35f;
@@ -113,6 +161,7 @@ public class DrawBlob : Draw
 
     public override void ApplyParamUpdate()
     {
+        base.ApplyParamUpdate();
 
         this.vertexCount = this._vertexCount + 1;
 

@@ -237,6 +237,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _vertexCount: 200
+  _lineWidth: 0.05
+  _lineColor: {x: 1, y: 1, z: 1, w: 1}
   minRadius: 0.2
   maxSpan: 0.35
   crispness: 3
