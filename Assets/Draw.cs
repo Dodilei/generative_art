@@ -202,3 +202,84 @@ public class DrawBlob : DrawLine
 
     }
 }
+
+public class DrawBlobTest : DrawLine
+{
+    public float minRadius = 0.2f;
+    public float maxSpan = 0.35f;
+    public float crispness = 3f;
+
+    public Vector4 _scaleParameter = new Vector4(0.75f,1f,0.9f,0.85f);
+    public Vector4 _phaseParameter = new Vector4(0f,0.35f,0.65f,0.7f);
+
+    protected Vector4 configParameter;
+    protected Vector4 scaleParameter;
+    protected Vector4 phaseParameter;
+
+    protected static string cs_loop_id = "LoopCloser";
+
+    static DrawBlobTest()
+    {
+        vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
+
+        topology = MeshTopology.LineStrip;
+
+        shader_id = "Custom/ContourShader";
+
+        compute_id = "BlobTestCompute";
+        cs_kernel_id = "Blob4Gen";
+    }
+
+    public DrawBlobTest()
+    {
+        this.ApplyParamUpdate();
+    }
+
+    public override void ApplyParamUpdate()
+    {
+        base.ApplyParamUpdate();
+
+        this.vertexCount = this._vertexCount + 1;
+
+        this.configParameter = new Vector4(
+            this.vertexCount-1,
+            this.minRadius,
+            this.maxSpan,
+            this.crispness
+        );
+
+        this.scaleParameter = this._scaleParameter;
+        this.phaseParameter = this._phaseParameter;
+    }
+
+    public override void Awake()
+    {
+        base.Awake();
+
+        // change this to IDs
+        computeShader.SetVector( "parameter", this.configParameter );
+        computeShader.SetVector( "scale",     this.scaleParameter  );
+        computeShader.SetVector( "phase",     this.phaseParameter  );
+
+        int CSHelperKernel = computeShader.FindKernel( cs_helper_id );
+        computeShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
+
+        int CSLoopKernel = computeShader.FindKernel( cs_loop_id );
+        computeShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
+
+		// Start CS (dim [vertexCount, 1, 1]) and fill vertex buffer
+		computeShader.Dispatch( CSKernelMain, this.vertexCount-1, 1, 1 );
+
+        // Start loop maker
+        computeShader.Dispatch( CSLoopKernel, 1, 1, 1 );
+
+        // create temp vertex
+        // start blob shader
+        // start loop shader
+        // start filler shader
+        // reassign blob shader parameters
+        // reassign filler index_modifier
+        // repeat
+
+    }
+}

@@ -1,0 +1,14 @@
+#pragma kernel BufferFiller
+
+RWBuffer<float> _Base;
+RWBuffer<float> _Source;
+
+uint2 index_modifier;
+uint float_stride;
+
+[numthreads(1,1,1)]
+void BufferFiller( uint ti : SV_DispatchThreadID )
+{
+	_Base[ dot(uint2(1,ti), index_modifier) ] = _Source[ ti ];
+}
+
