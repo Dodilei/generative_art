@@ -75,11 +75,14 @@ Shader "Custom/LineShader"
 	// Fragment Shader main function
 	fixed4 Frag( g2f i ) : SV_Target
 	{
+        float pi = 3.14159265358979;
         float2 position = (2*i.vertex.xy/_ScreenParams.xy)-1;
         //float test = ((2*atan(position.y/(position.x+length(position))) + 3.14159265358) % 0.104719755) > 0.052359878;
-        float theta = 2*atan(position.y/(position.x+length(position)));
-        float test = (cos(90*theta)/2 + 0.5) > 0.95;
-		return fixed4(test,test,test,1);
+        float theta = 2*atan(position.y/(position.x-length(position))) + pi;
+        float mirror_theta = -abs(-theta + pi) + pi;
+        float norm_m_theta = mirror_theta/pi;
+        float test = exp(-0.145*mirror_theta)*((cos(20*exp(0.6*mirror_theta+1.145)))/2 + 0.5) > 0.65;
+		return fixed4(test*(0.5*norm_m_theta+0.5),test*norm_m_theta*norm_m_theta,test*0.5,1);
 	}
 
 	ENDCG
@@ -87,7 +90,7 @@ Shader "Custom/LineShader"
 
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
+		//Tags { "RenderType"="Opaque" }
 		
 		Pass
 		{
