@@ -23,12 +23,17 @@ public abstract class Draw : MonoBehaviour
     protected static int vertexStride;
     protected static MeshTopology topology;
 
+    protected static Dictionary<string, ComputeShader> CSDict;
+
 	protected static class ShaderIDs
 	{
 		public static int vertices = Shader.PropertyToID( "_Vertices" );
 	}
 
-    public Draw() {}
+    public Draw()
+    {
+        // add computeShader to CSDict using key compute_id
+    }
 
     public virtual void ApplyParamUpdate()
     {
@@ -41,6 +46,8 @@ public abstract class Draw : MonoBehaviour
 
         // Create new material containing main shader pass
 		material = new Material( Shader.Find( shader_id ) );
+
+        this.InstantiateComputeShaders();
 
         // Load Compute Shader
 		computeShader = Instantiate( Resources.Load<ComputeShader>( compute_id ) );
@@ -79,6 +86,13 @@ public abstract class Draw : MonoBehaviour
         vertexBuffer.Release();
 		Destroy( computeShader );
 		Destroy( material );
+    }
+
+    public virtual void InstantiateComputeShaders()
+    {
+        // read each entry of CSDict
+        //     set CSDict["compute_name"] = >instantiate< compute_name
+
     }
 }
 
