@@ -11,14 +11,14 @@ public abstract class Draw : MonoBehaviour
     protected static Material material;
 
     // Compute Shader will generate vertices
-    protected static ComputeShader computeShader;
+    protected static ComputeShader mainCompShader;
     protected int CSKernelMain;
 
     // Buffer to store vertices
     protected static ComputeBuffer vertexBuffer;
 
     protected static string shader_id;
-    protected static string compute_id;
+    protected static string main_cshader;
 
     protected static string cs_kernel_id;
 
@@ -36,7 +36,7 @@ public abstract class Draw : MonoBehaviour
     public Draw()
     {
         Debug.Log("Starting Draw");
-        CSList.Add(compute_id);
+        CSList.Add(main_cshader);
     }
 
     public virtual void ApplyParamUpdate()
@@ -48,20 +48,21 @@ public abstract class Draw : MonoBehaviour
     {
         this.ApplyParamUpdate();
 
+        // Create vertex buffer
+		vertexBuffer = new ComputeBuffer( vertexCount, vertexStride );
+
         // Create new material containing main shader pass
 		material = new Material( Shader.Find( shader_id ) );
 
         this.InstantiateComputeShaders();
 
-        // Load Compute Shader
-		computeShader = computeShaders[compute_id];
-		this.CSKernelMain = computeShader.FindKernel( cs_kernel_id );
+        mainCompShader = computeShaders[main_cshader];
 
-        // Create vertex buffer
-		vertexBuffer = new ComputeBuffer( vertexCount, vertexStride );
+        // Load Compute Shader
+		this.CSKernelMain = mainCompShader.FindKernel( cs_kernel_id );
 
         // Link vertex buffer to CS main kernel
-		computeShader.SetBuffer( CSKernelMain, ShaderIDs.vertices, vertexBuffer );
+		mainCompShader.SetBuffer( CSKernelMain, ShaderIDs.vertices, vertexBuffer );
 
         // Link vertex buffer to main shader in material
 		material.SetBuffer( ShaderIDs.vertices, vertexBuffer );
@@ -88,7 +89,7 @@ public abstract class Draw : MonoBehaviour
     public virtual void OnDestroy()
     {
         vertexBuffer.Release();
-		Destroy( computeShader );
+		Destroy( mainCompShader );
 		Destroy( material );
     }
 
@@ -139,8 +140,8 @@ public class DrawLine : Draw
     {
         base.Awake();
 
-        computeShader.SetVector("line_width", this.lineWidth);
-        computeShader.SetVector("line_color", this.lineColor);
+        mainCompShader.SetVector("line_width", this.lineWidth);
+        mainCompShader.SetVector("line_color", this.lineColor);
     }
 }
 
@@ -171,13 +172,14 @@ public class DrawBlob : DrawLine
 
         shader_id = "Custom/LineShader";
 
-        compute_id = "BlobCompute";
+        main_cshader = "BlobCompute";
         cs_kernel_id = "Blob4Gen";
     }
 
     public DrawBlob()
     {
         Debug.Log("Starting DrawBlob");
+        
         this.ApplyParamUpdate();
     }
 
@@ -203,24 +205,24 @@ public class DrawBlob : DrawLine
         base.Awake();
 
         // change this to IDs
-        computeShader.SetVector( "parameter", this.configParameter );
-        computeShader.SetVector( "scale",     this.scaleParameter  );
-        computeShader.SetVector( "phase",     this.phaseParameter  );
+        mainCompShader.SetVector( "parameter", this.configParameter );
+        mainCompShader.SetVector( "scale",     this.scaleParameter  );
+        mainCompShader.SetVector( "phase",     this.phaseParameter  );
 
-        int CSHelperKernel = computeShader.FindKernel( cs_helper_id );
-        computeShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
+        int CSHelperKernel = mainCompShader.FindKernel( cs_helper_id );
+        mainCompShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
 
-        int CSLoopKernel = computeShader.FindKernel( cs_loop_id );
-        computeShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
+        int CSLoopKernel = mainCompShader.FindKernel( cs_loop_id );
+        mainCompShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
 
 		// Start CS (dim [vertexCount, 1, 1]) and fill vertex buffer
-		computeShader.Dispatch( CSKernelMain, this.vertexCount-1, 1, 1 );
+		mainCompShader.Dispatch( CSKernelMain, this.vertexCount-1, 1, 1 );
 
         // Start bisection calculator
-        computeShader.Dispatch( CSHelperKernel, this.vertexCount-1, 1, 1 );
+        mainCompShader.Dispatch( CSHelperKernel, this.vertexCount-1, 1, 1 );
 
         // Start loop maker
-        computeShader.Dispatch( CSLoopKernel, 1, 1, 1 );
+        mainCompShader.Dispatch( CSLoopKernel, 1, 1, 1 );
 
     }
 }
