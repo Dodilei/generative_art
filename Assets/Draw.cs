@@ -1,6 +1,9 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-public abstract class Draw : MonoBehaviour
+public abstract class Draw
 {
     public int _vertexCount;
     protected int vertexCount;
@@ -23,16 +26,18 @@ public abstract class Draw : MonoBehaviour
     protected static int vertexStride;
     protected static MeshTopology topology;
 
-    protected static Dictionary<string, ComputeShader> CSDict;
-
 	protected static class ShaderIDs
 	{
 		public static int vertices = Shader.PropertyToID( "_Vertices" );
 	}
 
-    public Draw()
+    protected static Dictionary<string, Action<ComputeShader>> CShaderReference = new Dictionary<string, Action<ComputeShader>>();
+
+    static Draw() {}
+
+    public virtual void SetComputeShaders()
     {
-        // add computeShader to CSDict using key compute_id
+        CShaderReference.Add(compute_id, CS => {computeShader = CS;} );
     }
 
     public virtual void ApplyParamUpdate()
@@ -43,6 +48,7 @@ public abstract class Draw : MonoBehaviour
     public virtual void Awake()
     {
         this.ApplyParamUpdate();
+        this.SetComputeShaders();
 
         // Create new material containing main shader pass
 		material = new Material( Shader.Find( shader_id ) );
@@ -50,7 +56,7 @@ public abstract class Draw : MonoBehaviour
         this.InstantiateComputeShaders();
 
         // Load Compute Shader
-		computeShader = Instantiate( Resources.Load<ComputeShader>( compute_id ) );
+
 		this.CSKernelMain = computeShader.FindKernel( cs_kernel_id );
 
         // Create vertex buffer
@@ -88,12 +94,15 @@ public abstract class Draw : MonoBehaviour
 		Destroy( material );
     }
 
-    public virtual void InstantiateComputeShaders()
+    public void InstantiateComputeShaders()
     {
-        // read each entry of CSDict
-        //     set CSDict["compute_name"] = >instantiate< compute_name
-
+        foreach (string key in CShaderReference.Keys.ToList())
+        {
+            ComputeShader instantiated = Instantiate( Resources.Load<ComputeShader>( key ) );
+            CShaderReference[key](instantiated);
+        }
     }
+
 }
 
 public class DrawLine : Draw
@@ -158,6 +167,7 @@ public class DrawBlob : DrawLine
 
     static DrawBlob()
     {
+        Debug.Log("Drawblob static constructor");
         vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
 
         topology = MeshTopology.LineStrip;
@@ -170,7 +180,12 @@ public class DrawBlob : DrawLine
 
     public DrawBlob()
     {
-        this.ApplyParamUpdate();
+        Debug.Log("Drawblob constructor");
+    }
+
+    public override void SetComputeShaders()
+    {
+        base.SetComputeShaders();
     }
 
     public override void ApplyParamUpdate()

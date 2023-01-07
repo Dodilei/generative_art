@@ -19,6 +19,7 @@ public class MainScript : DrawBlob
     public override void OnRenderObject()
     {
         this.RunComplete();
+        this.RunComplete();
         this.enabled = false;
     }
 }
