@@ -117,7 +117,7 @@ public class DrawBlobPoint : DrawPoint
     protected Vector4 scaleParameter;
     protected Vector4 phaseParameter;
 
-    static DrawBlob()
+    static DrawBlobPoint()
     {
         vertexStride = 2*(4*sizeof(float));
 
@@ -129,7 +129,7 @@ public class DrawBlobPoint : DrawPoint
         cs_kernel_id = "Blob4Gen";
     }
 
-    public DrawBlob()
+    public DrawBlobPoint()
     {
         this.ApplyParamUpdate();
     }

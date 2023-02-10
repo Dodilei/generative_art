@@ -1,7 +1,7 @@
 using UnityEngine;
 using static Draw;
 
-public class MainScript : DrawBlob
+public class MainScript : DrawBlobPoint
 {
     public override void Awake()
     {

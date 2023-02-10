@@ -38,8 +38,8 @@
   <ItemGroup>
      <Compile Include="Assets/MainScript.cs" />
      <Compile Include="Assets/Draw.cs" />
-     <None Include="Assets/Resources/LineShader.shader" />
-     <None Include="Assets/Resources/BlobCompute.compute" />
+     <None Include="Assets/Resources/PointShader.shader" />
+     <None Include="Assets/Resources/PointGenerators.compute" />
     <Reference Include="UnityEngine">
         <HintPath>/home/dodilei/Unity/Hub/Editor/2021.3.14f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
