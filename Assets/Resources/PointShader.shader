@@ -26,6 +26,14 @@ Shader "Custom/PointShader"
 		float4 color : TEXCOORD1;
 	};
 
+	v2g Polar2Cartesian( v2g point_vertex )
+	{
+		v2g o;
+		o = point_vertex;
+		o.vertex.xy = float2(o.vertex.x*cos(o.vertex.y), o.vertex.x*sin(o.vertex.y));
+		return o;
+	}
+
 	// buffer which will be read inside VS
 	StructuredBuffer<c2v> _Vertices;
 	
@@ -56,10 +64,10 @@ Shader "Custom/PointShader"
 	
 	// Geometry Shader main function
 	[MaxVertexCount(4)]
-	void Geom( point v2g input[1], inout TriangleStream<g2f> outstream)
+	void Square( point v2g input[1], inout TriangleStream<g2f> outstream)
 	{
 		// initialize output
-
+		input[0] = Polar2Cartesian(input[0]);
 		g2f o;
 		o.color = float4(1,1,1,1);
 
@@ -98,9 +106,17 @@ Shader "Custom/PointShader"
 		{
 			CGPROGRAM
 			#pragma vertex VertCartesian
-			#pragma geometry Geom
+			#pragma geometry Square
 			#pragma fragment Frag
 			ENDCG
+		}
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex VertPolar
+			#pragma geometry Square
+			#pragma fragment Frag
+			ENDCG			
 		}
 	}
 }

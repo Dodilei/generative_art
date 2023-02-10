@@ -60,7 +60,7 @@ public abstract class Draw : MonoBehaviour
     {
 
         // Use first defined pass on main shaders
-		material.SetPass( 0 );
+		material.SetPass( 1 );
 
         // Dispatch the main shaders
 		Graphics.DrawProceduralNow( topology, vertexBuffer.count);
@@ -126,7 +126,7 @@ public class DrawBlobPoint : DrawPoint
         shader_id = "Custom/PointShader";
 
         compute_id = "PointGenerators";
-        cs_kernel_id = "Blob4Gen";
+        cs_kernel_id = "Blob4GenPolar";
     }
 
     public DrawBlobPoint()
