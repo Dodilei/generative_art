@@ -17,35 +17,48 @@ public abstract class Draw : MonoBehaviour
     // Buffer to store vertices
     protected static ComputeBuffer vertexBuffer;
 
+    // NameID of unique Shader Pass
     protected static string shader_id;
+    // NameID of main* compute shader
     protected static string main_cshader;
 
+    // ID of main* cs kernel
     protected static string cs_kernel_id;
 
+    // Size of each vertex
     protected static int vertexStride;
+    // Topology kind
     protected static MeshTopology topology;
 
+    // List to store ComputeShader names
     protected static List<string> CSList = new List<string>();
+    // Dictionary to relate CS names and objects after instancing
     protected static Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
 
+    // class to store shader information, this is allegedly faster IDK
 	protected static class ShaderIDs
 	{
 		public static int vertices = Shader.PropertyToID( "_Vertices" );
 	}
 
+    // Constructor
+    // Adds main* ComputeShader to CSList
     public Draw()
     {
         Debug.Log("Starting Draw");
         CSList.Add(main_cshader);
     }
 
+    // This function applies external parameters
     public virtual void ApplyParamUpdate()
     {
         this.vertexCount = this._vertexCount;
     }
 
+    // Awake runs when started
     public virtual void Awake()
     {
+        // Apply external params
         this.ApplyParamUpdate();
 
         // Create vertex buffer
@@ -54,11 +67,13 @@ public abstract class Draw : MonoBehaviour
         // Create new material containing main shader pass
 		material = new Material( Shader.Find( shader_id ) );
 
+        // Instantiate all compute shaders in CSList and add them to the Dictionary
         this.InstantiateComputeShaders();
 
+        // Get main* shader from dictionary
         mainCompShader = computeShaders[main_cshader];
 
-        // Load Compute Shader
+        // Load main* kernel
 		this.CSKernelMain = mainCompShader.FindKernel( cs_kernel_id );
 
         // Link vertex buffer to CS main kernel
@@ -68,13 +83,13 @@ public abstract class Draw : MonoBehaviour
 		material.SetBuffer( ShaderIDs.vertices, vertexBuffer );
     }
 
+    // This runs when drawing to the camera
     public virtual void OnRenderObject()
     {
-
-        // Use first defined pass on main shaders
+        // Use first defined pass on Shader
 		material.SetPass( 0 );
 
-        // Dispatch the main shaders
+        // Dispatch the Shader
 		Graphics.DrawProceduralNow( topology, vertexBuffer.count);
         // instance count will mirror vertexBuffer size
         // mesh topology influences how vertex info is sent to VS,
@@ -93,6 +108,7 @@ public abstract class Draw : MonoBehaviour
 		Destroy( material );
     }
 
+    // Instantiate all compute Shaders on Dictionary
     public virtual void InstantiateComputeShaders()
     {
         foreach (string key in CSList)
