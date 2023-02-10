@@ -146,7 +146,7 @@ public class DrawBlob : DrawLine
     {
         vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
 
-        topology = MeshTopology.LineStrip;
+        topology = MeshTopology.Points;
 
         shader_id = "Custom/LineShader";
 

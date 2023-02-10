@@ -47,7 +47,7 @@ Shader "Custom/LineShader"
 	
 	// Geometry Shader main function
 	[MaxVertexCount(4)]
-	void Geom( line v2g input[2], inout TriangleStream<g2f> outstream)
+	void Geom( point v2g input[1], inout TriangleStream<g2f> outstream)
 	{
 		// initialize output
 
