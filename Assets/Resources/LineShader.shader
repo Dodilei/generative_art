@@ -52,19 +52,19 @@ Shader "Custom/LineShader"
 		// initialize output
 
 		g2f o;
-		o.color = input[0].color;
+		o.color = float4(1,1,1,1);
 
 		// calculate four vertices of a quad to draw a
 		//:linear-variable width line
 
-		o.vertex = input[0].vertex - float4(input[0].bisection,0,0);
+		o.vertex = input[0].vertex + float4(-0.05,0.05,0,0);
 		outstream.Append(o);
-		o.vertex = input[0].vertex + float4(input[0].bisection,0,0);
+		o.vertex = input[0].vertex + float4(0.05, 0.05,0,0);
 		outstream.Append(o);
 
-		o.vertex = input[1].vertex - float4(input[1].bisection,0,0);
+		o.vertex = input[0].vertex + float4(-0.05, -0.05,0,0);
 		outstream.Append(o);
-		o.vertex = input[1].vertex + float4(input[1].bisection,0,0);
+		o.vertex = input[0].vertex + float4(0.05, -0.05,0,0);
 		outstream.Append(o);
 
 		// vertex order is important to represent TriStrips
