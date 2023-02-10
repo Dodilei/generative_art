@@ -26,11 +26,11 @@ Shader "Custom/PointShader"
 		float4 color : TEXCOORD1;
 	};
 
-	v2g Polar2Cartesian( v2g point_vertex )
+	float4 Polar2Cartesian( float4 point_vertex )
 	{
-		v2g o;
+		float4 o;
 		o = point_vertex;
-		o.vertex.xy = float2(o.vertex.x*cos(o.vertex.y), o.vertex.x*sin(o.vertex.y));
+		o.xy = float2(o.x*cos(o.y), o.x*sin(o.y));
 		return o;
 	}
 
@@ -67,7 +67,7 @@ Shader "Custom/PointShader"
 	void Square( point v2g input[1], inout TriangleStream<g2f> outstream)
 	{
 		// initialize output
-		input[0] = Polar2Cartesian(input[0]);
+		input[0].vertex = Polar2Cartesian(input[0].vertex);
 		g2f o;
 		o.color = float4(1,1,1,1);
 
@@ -85,6 +85,33 @@ Shader "Custom/PointShader"
 		outstream.Append(o);
 
 		// vertex order is important to represent TriStrips
+
+		outstream.RestartStrip();
+	}
+
+	// Geometry Shader main function
+	[MaxVertexCount(4)]
+	void PolarSquare( point v2g input[1], inout TriangleStream<g2f> outstream)
+	{
+		// initialize output
+		g2f o;
+		o.color = input[0].color;
+
+		// calculate four vertices of a quad to draw a
+		//:linear-variable width line
+
+		o.vertex = Polar2Cartesian(input[0].vertex + float4(-0.05,0.05,0,0));
+		outstream.Append(o);
+		o.vertex = Polar2Cartesian(input[0].vertex + float4(0.05, 0.05,0,0));
+		outstream.Append(o);
+
+		o.vertex = Polar2Cartesian(input[0].vertex + float4(-0.05, -0.05,0,0));
+		outstream.Append(o);
+		o.vertex = Polar2Cartesian(input[0].vertex + float4(0.05, -0.05,0,0));
+		outstream.Append(o);
+
+		// vertex order is important to represent TriStrips
+
 
 		outstream.RestartStrip();
 	}
@@ -114,7 +141,7 @@ Shader "Custom/PointShader"
 		{
 			CGPROGRAM
 			#pragma vertex VertPolar
-			#pragma geometry Square
+			#pragma geometry PolarSquare
 			#pragma fragment Frag
 			ENDCG			
 		}
