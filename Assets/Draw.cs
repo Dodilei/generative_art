@@ -82,29 +82,29 @@ public abstract class Draw : MonoBehaviour
     }
 }
 
-public class DrawLine : Draw
+public class DrawPoint : Draw
 {
 
-    public Vector4 _lineColor = new Vector4(1f,1f,1f,1f);
+    public Vector4 _pointColor = new Vector4(1f,1f,1f,1f);
 
-    protected Vector4 lineColor;
+    protected Vector4 pointColor;
 
     public override void ApplyParamUpdate()
     {
         base.ApplyParamUpdate();
 
-        this.lineColor = this._lineColor;
+        this.pointColor = this._pointColor;
     }
 
     public override void Awake()
     {
         base.Awake();
 
-        computeShader.SetVector("line_color", this.lineColor);
+        computeShader.SetVector("point_color", this.pointColor);
     }
 }
 
-public class DrawBlob : DrawLine
+public class DrawBlobPoint : DrawPoint
 {
     public float minRadius = 0.2f;
     public float maxSpan = 0.35f;
