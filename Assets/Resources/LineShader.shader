@@ -9,18 +9,14 @@ Shader "Custom/LineShader"
 	struct c2v
 	{
 		float4 vertex : SV_POSITION;
-		float width : TEXCOORD0;
 		float4 color : TEXCOORD1;
-		float2 bisection : TEXCOORD2;
 	};
 
 	// struct used between VS and GS
 	struct v2g
 	{
 		float4 vertex : SV_POSITION;
-		//float width : TEXCOORD0;
 		float4 color : TEXCOORD1;
-		float2 bisection : TEXCOORD2;
 	};
 	
 	// struct used between GS and FS
@@ -40,7 +36,6 @@ Shader "Custom/LineShader"
 
 		o.vertex = UnityObjectToClipPos( _Vertices[ vi ].vertex );
 		o.color = (vi % 2)*float4(1, 1, 1, 1);//_Vertices[ vi ].color;
-		o.bisection = _Vertices[ vi ].bisection * _Vertices[ vi ].width;
 
 		return o;
 	}

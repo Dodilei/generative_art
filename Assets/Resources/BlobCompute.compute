@@ -1,7 +1,5 @@
 #pragma kernel TestKernel
 #pragma kernel Blob4Gen
-#pragma kernel BisecCalc
-#pragma kernel LoopCloser
 
 #define TAU 6.2831852
 
@@ -9,14 +7,11 @@
 struct c2v 
 {
 	float4 vertex : SV_POSITION;
-	float width : TEXCOORD0;
 	float4 color : TEXCOORD1;
-	float2 bisection : TEXCOORD2;
 };
 
 RWStructuredBuffer<c2v> _Vertices;
 
-float4 line_width;
 float4 line_color;
 
 float4 parameter;
@@ -29,9 +24,7 @@ void TestKernel( uint ti : SV_DispatchThreadID )
 	c2v o;
 
 	o.vertex = float4( ((float)ti/8)-0.5, ((float)ti % 2)/8, 0, 1 );
-	o.width = (((float)ti % 3)+1)/90;
 	o.color = float4(0,0,1,1);
-	o.bisection = float2(0,0);
 	
 	_Vertices[ ti ] = o;
 }
@@ -60,45 +53,7 @@ void Blob4Gen( uint ti : SV_DispatchThreadID )
 	c2v o;
 
 	o.vertex = float4(R*cos(theta),R*sin(theta),0,1);
-	o.width = line_width.x;//dot(float4(1,ti,ti*ti,ti*ti*ti), line_width);
 	o.color = line_color;
-	o.bisection = float2(0,0);
 
 	_Vertices[ ti ] = o;
-}
-
-[numthreads(1,1,1)]
-void BisecCalc( uint ti : SV_DispatchThreadID )
-{
-	uint vxCount = (uint) parameter.x;
-
-	float2 before;
-	float2 center;
-	float2 after;
-
-	float2 orto;
-	float2 bisec;
-
-	before = _Vertices[ (( (uint)ti ) + vxCount-1) % vxCount ].vertex.xy;
-	after = _Vertices[ (( (uint)ti )+1) % vxCount ].vertex.xy;
-
-	center = _Vertices[ ti ].vertex.xy;
-
-	bisec = after - before;
-	bisec = float2(-bisec.y, bisec.x);
-
-	orto = after - center;
-	orto = float2(-orto.y, orto.x);
-
-	_Vertices[ ti ].bisection = bisec*length(orto)*rcp(dot(bisec, orto));
-}
-
-[numthreads(1, 1, 1)]
-void LoopCloser( uint ti : SV_DispatchThreadID )
-{
-	uint vxCount;
-	uint _;
-	_Vertices.GetDimensions(vxCount, _);
-
-	_Vertices[vxCount-1] = _Vertices[0];
 }
