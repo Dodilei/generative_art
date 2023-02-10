@@ -123,9 +123,9 @@ public class DrawBlobPoint : DrawPoint
 
         topology = MeshTopology.Points;
 
-        shader_id = "Custom/LineShader";
+        shader_id = "Custom/PointShader";
 
-        compute_id = "BlobCompute";
+        compute_id = "PointGenerators";
         cs_kernel_id = "Blob4Gen";
     }
 

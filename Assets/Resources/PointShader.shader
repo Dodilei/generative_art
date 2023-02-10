@@ -1,5 +1,5 @@
 
-Shader "Custom/LineShader"
+Shader "Custom/PointShader"
 {
 	CGINCLUDE
 			
