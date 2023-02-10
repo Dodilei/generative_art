@@ -30,12 +30,26 @@ Shader "Custom/PointShader"
 	StructuredBuffer<c2v> _Vertices;
 	
 	// Vertex Shader main function
-	v2g Vert( uint vi : SV_VertexID )
+	v2g VertCartesian( uint vi : SV_VertexID )
 	{
 		v2g o;
 
 		o.vertex = UnityObjectToClipPos( _Vertices[ vi ].vertex );
-		o.color = (vi % 2)*float4(1, 1, 1, 1);//_Vertices[ vi ].color;
+		o.color = _Vertices[ vi ].color;
+
+		return o;
+	}
+
+	v2g VertPolar( uint vi : SV_VertexID )
+	{
+		v2g o;
+
+		float4 transformation = _Vertices[ vi ].vertex;
+		transformation.y = 0;
+
+		o.vertex = UnityObjectToClipPos( transformation );
+		o.vertex.y = _Vertices[ vi ].vertex.y;
+		o.color = _Vertices[ vi ].color;
 
 		return o;
 	}
@@ -83,7 +97,7 @@ Shader "Custom/PointShader"
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex Vert
+			#pragma vertex VertCartesian
 			#pragma geometry Geom
 			#pragma fragment Frag
 			ENDCG
