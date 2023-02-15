@@ -132,11 +132,14 @@ public class DrawLine : Draw
     protected Vector4 lineWidth;
     protected Vector4 lineColor;
 
-    protected static string cs_helper_id = "BisecCalc";
-    protected int CSHelperKernel;
+    protected static string csLineUtilsID = "LineUtils";
+    protected ComputeShader lineUtilShader;
 
-    protected static string cs_loop_id = "LoopCloser";
-    protected int CSLoopKernel;
+    protected static string bisecKernelID = "BisecCalc";
+    protected int bisecKernel;
+
+    protected static string loopKernelID = "LoopCloser";
+    protected int loopKernel;
 
     static DrawLine()
     {
@@ -145,6 +148,8 @@ public class DrawLine : Draw
         topology = MeshTopology.LineStrip;
 
         shader_id = "Custom/LineShader";
+
+        CSList.Add(csLineUtilsID);
     }
 
     public override void ApplyParamUpdate()
@@ -178,20 +183,24 @@ public class DrawLine : Draw
         mainCompShader.SetVector("line_width", this.lineWidth);
         mainCompShader.SetVector("line_color", this.lineColor);
 
-        CSHelperKernel = mainCompShader.FindKernel( cs_helper_id );
-        mainCompShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
+        lineUtilShader = computeShaders[csLineUtilsID];
 
-        CSLoopKernel = mainCompShader.FindKernel( cs_loop_id );
-        mainCompShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
+        lineUtilShader.SetInt("_vxCount", this.vertexCount);
+
+        bisecKernel = lineUtilShader.FindKernel( bisecKernelID );
+        lineUtilShader.SetBuffer( bisecKernel, ShaderIDs.vertices, vertexBuffer );
+
+        loopKernel = lineUtilShader.FindKernel( loopKernelID );
+        lineUtilShader.SetBuffer( loopKernel, ShaderIDs.vertices, vertexBuffer );
     }
 
     public override void EndAwake()
     {
         // Start bisection calculator
-        mainCompShader.Dispatch( CSHelperKernel, this.vertexCount-1, 1, 1 );
+        lineUtilShader.Dispatch( bisecKernel, this.vertexCount-1, 1, 1 );
 
         // Start loop maker
-        mainCompShader.Dispatch( CSLoopKernel, 1, 1, 1 );
+        lineUtilShader.Dispatch( loopKernel, 1, 1, 1 );
     }
 }
 
