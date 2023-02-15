@@ -83,6 +83,8 @@ public abstract class Draw : MonoBehaviour
 		material.SetBuffer( ShaderIDs.vertices, vertexBuffer );
     }
 
+    public virtual void EndAwake() {}
+
     // This runs when drawing to the camera
     public virtual void OnRenderObject()
     {
@@ -130,9 +132,26 @@ public class DrawLine : Draw
     protected Vector4 lineWidth;
     protected Vector4 lineColor;
 
+    protected static string cs_helper_id = "BisecCalc";
+    protected int CSHelperKernel;
+
+    protected static string cs_loop_id = "LoopCloser";
+    protected int CSLoopKernel;
+
+    static DrawLine()
+    {
+        vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
+
+        topology = MeshTopology.LineStrip;
+
+        shader_id = "Custom/LineShader";
+    }
+
     public override void ApplyParamUpdate()
     {
         base.ApplyParamUpdate();
+
+        this.vertexCount = this._vertexCount + 1; // I should differentiate between loops and normal lines
 
         if (this.isWidthPoly)
         {
@@ -158,6 +177,21 @@ public class DrawLine : Draw
 
         mainCompShader.SetVector("line_width", this.lineWidth);
         mainCompShader.SetVector("line_color", this.lineColor);
+
+        CSHelperKernel = mainCompShader.FindKernel( cs_helper_id );
+        mainCompShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
+
+        CSLoopKernel = mainCompShader.FindKernel( cs_loop_id );
+        mainCompShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
+    }
+
+    public override void EndAwake()
+    {
+        // Start bisection calculator
+        mainCompShader.Dispatch( CSHelperKernel, this.vertexCount-1, 1, 1 );
+
+        // Start loop maker
+        mainCompShader.Dispatch( CSLoopKernel, 1, 1, 1 );
     }
 }
 
@@ -174,19 +208,9 @@ public class DrawBlob : DrawLine
     protected Vector4 scaleParameter;
     protected Vector4 phaseParameter;
 
-    protected static string cs_helper_id = "BisecCalc";
-
-    protected static string cs_loop_id = "LoopCloser";
-
     static DrawBlob()
     {
         Debug.Log("Starting static DrawBlob");
-
-        vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
-
-        topology = MeshTopology.LineStrip;
-
-        shader_id = "Custom/LineShader";
 
         main_cshader = "BlobCompute";
         cs_kernel_id = "Blob4Gen";
@@ -203,10 +227,8 @@ public class DrawBlob : DrawLine
     {
         base.ApplyParamUpdate();
 
-        this.vertexCount = this._vertexCount + 1;
-
         this.configParameter = new Vector4(
-            this.vertexCount-1,
+            this.vertexCount-1, // # TODO i should pass this to DrawLine (Loop)  [em caso de Loop o VXC da fun. geradora sempre vai ser -1]
             this.minRadius,
             this.maxSpan,
             this.crispness
@@ -225,20 +247,14 @@ public class DrawBlob : DrawLine
         mainCompShader.SetVector( "scale",     this.scaleParameter  );
         mainCompShader.SetVector( "phase",     this.phaseParameter  );
 
-        int CSHelperKernel = mainCompShader.FindKernel( cs_helper_id );
-        mainCompShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
-
-        int CSLoopKernel = mainCompShader.FindKernel( cs_loop_id );
-        mainCompShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
-
 		// Start CS (dim [vertexCount, 1, 1]) and fill vertex buffer
 		mainCompShader.Dispatch( CSKernelMain, this.vertexCount-1, 1, 1 );
 
-        // Start bisection calculator
-        mainCompShader.Dispatch( CSHelperKernel, this.vertexCount-1, 1, 1 );
+        this.EndAwake();
+    }
 
-        // Start loop maker
-        mainCompShader.Dispatch( CSLoopKernel, 1, 1, 1 );
-
+    public override void EndAwake()
+    {
+        base.EndAwake();
     }
 }
