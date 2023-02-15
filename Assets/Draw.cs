@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+
 
 public abstract class Draw : MonoBehaviour
 {
@@ -9,60 +11,87 @@ public abstract class Draw : MonoBehaviour
     protected static Material material;
 
     // Compute Shader will generate vertices
-    protected static ComputeShader computeShader;
+    protected static ComputeShader mainCompShader;
     protected int CSKernelMain;
 
     // Buffer to store vertices
     protected static ComputeBuffer vertexBuffer;
 
+    // NameID of unique Shader Pass
     protected static string shader_id;
-    protected static string compute_id;
+    // NameID of main* compute shader
+    protected static string main_cshader;
 
+    // ID of main* cs kernel
     protected static string cs_kernel_id;
 
+    // Size of each vertex
     protected static int vertexStride;
+    // Topology kind
     protected static MeshTopology topology;
 
+    // List to store ComputeShader names
+    protected static List<string> CSList = new List<string>();
+    // Dictionary to relate CS names and objects after instancing
+    protected static Dictionary<string, ComputeShader> computeShaders = new Dictionary<string, ComputeShader>();
+
+    // class to store shader information, this is allegedly faster IDK
 	protected static class ShaderIDs
 	{
 		public static int vertices = Shader.PropertyToID( "_Vertices" );
 	}
 
-    public Draw() {}
+    // Constructor
+    // Adds main* ComputeShader to CSList
+    public Draw()
+    {
+        Debug.Log("Starting Draw");
+        CSList.Add(main_cshader);
+    }
 
+    // This function applies external parameters
     public virtual void ApplyParamUpdate()
     {
         this.vertexCount = this._vertexCount;
     }
 
+    // Awake runs when started
     public virtual void Awake()
     {
+        // Apply external params
         this.ApplyParamUpdate();
-
-        // Create new material containing main shader pass
-		material = new Material( Shader.Find( shader_id ) );
-
-        // Load Compute Shader
-		computeShader = Instantiate( Resources.Load<ComputeShader>( compute_id ) );
-		this.CSKernelMain = computeShader.FindKernel( cs_kernel_id );
 
         // Create vertex buffer
 		vertexBuffer = new ComputeBuffer( vertexCount, vertexStride );
 
+        // Create new material containing main shader pass
+		material = new Material( Shader.Find( shader_id ) );
+
+        // Instantiate all compute shaders in CSList and add them to the Dictionary
+        this.InstantiateComputeShaders();
+
+        // Get main* shader from dictionary
+        mainCompShader = computeShaders[main_cshader];
+
+        // Load main* kernel
+		this.CSKernelMain = mainCompShader.FindKernel( cs_kernel_id );
+
         // Link vertex buffer to CS main kernel
-		computeShader.SetBuffer( CSKernelMain, ShaderIDs.vertices, vertexBuffer );
+		mainCompShader.SetBuffer( CSKernelMain, ShaderIDs.vertices, vertexBuffer );
 
         // Link vertex buffer to main shader in material
 		material.SetBuffer( ShaderIDs.vertices, vertexBuffer );
     }
 
+    public virtual void EndAwake() {}
+
+    // This runs when drawing to the camera
     public virtual void OnRenderObject()
     {
-
-        // Use first defined pass on main shaders
+        // Use first defined pass on Shader
 		material.SetPass( 0 );
 
-        // Dispatch the main shaders
+        // Dispatch the Shader
 		Graphics.DrawProceduralNow( topology, vertexBuffer.count);
         // instance count will mirror vertexBuffer size
         // mesh topology influences how vertex info is sent to VS,
@@ -77,8 +106,17 @@ public abstract class Draw : MonoBehaviour
     public virtual void OnDestroy()
     {
         vertexBuffer.Release();
-		Destroy( computeShader );
+		Destroy( mainCompShader );
 		Destroy( material );
+    }
+
+    // Instantiate all compute Shaders on Dictionary
+    public virtual void InstantiateComputeShaders()
+    {
+        foreach (string key in CSList)
+        {
+            computeShaders[key] = Instantiate( Resources.Load<ComputeShader>( key ) );
+        }
     }
 }
 
@@ -94,9 +132,31 @@ public class DrawLine : Draw
     protected Vector4 lineWidth;
     protected Vector4 lineColor;
 
+    protected static string csLineUtilsID = "LineUtils";
+    protected ComputeShader lineUtilShader;
+
+    protected static string bisecKernelID = "BisecCalc";
+    protected int bisecKernel;
+
+    protected static string loopKernelID = "LoopCloser";
+    protected int loopKernel;
+
+    static DrawLine()
+    {
+        vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
+
+        topology = MeshTopology.LineStrip;
+
+        shader_id = "Custom/LineShader";
+
+        CSList.Add(csLineUtilsID);
+    }
+
     public override void ApplyParamUpdate()
     {
         base.ApplyParamUpdate();
+
+        this.vertexCount = this._vertexCount + 1; // I should differentiate between loops and normal lines
 
         if (this.isWidthPoly)
         {
@@ -120,8 +180,27 @@ public class DrawLine : Draw
     {
         base.Awake();
 
-        computeShader.SetVector("line_width", this.lineWidth);
-        computeShader.SetVector("line_color", this.lineColor);
+        mainCompShader.SetVector("line_width", this.lineWidth);
+        mainCompShader.SetVector("line_color", this.lineColor);
+
+        lineUtilShader = computeShaders[csLineUtilsID];
+
+        lineUtilShader.SetInt("_vxCount", this.vertexCount);
+
+        bisecKernel = lineUtilShader.FindKernel( bisecKernelID );
+        lineUtilShader.SetBuffer( bisecKernel, ShaderIDs.vertices, vertexBuffer );
+
+        loopKernel = lineUtilShader.FindKernel( loopKernelID );
+        lineUtilShader.SetBuffer( loopKernel, ShaderIDs.vertices, vertexBuffer );
+    }
+
+    public override void EndAwake()
+    {
+        // Start bisection calculator
+        lineUtilShader.Dispatch( bisecKernel, this.vertexCount-1, 1, 1 );
+
+        // Start loop maker
+        lineUtilShader.Dispatch( loopKernel, 1, 1, 1 );
     }
 }
 
@@ -138,24 +217,18 @@ public class DrawBlob : DrawLine
     protected Vector4 scaleParameter;
     protected Vector4 phaseParameter;
 
-    protected static string cs_helper_id = "BisecCalc";
-
-    protected static string cs_loop_id = "LoopCloser";
-
     static DrawBlob()
     {
-        vertexStride = 2*(4*sizeof(float)) + (2*sizeof(float)) + sizeof(float);
+        Debug.Log("Starting static DrawBlob");
 
-        topology = MeshTopology.LineStrip;
-
-        shader_id = "Custom/LineShader";
-
-        compute_id = "BlobCompute";
+        main_cshader = "BlobCompute";
         cs_kernel_id = "Blob4Gen";
     }
 
     public DrawBlob()
     {
+        Debug.Log("Starting DrawBlob");
+        
         this.ApplyParamUpdate();
     }
 
@@ -163,10 +236,8 @@ public class DrawBlob : DrawLine
     {
         base.ApplyParamUpdate();
 
-        this.vertexCount = this._vertexCount + 1;
-
         this.configParameter = new Vector4(
-            this.vertexCount-1,
+            this.vertexCount-1, // # TODO i should pass this to DrawLine (Loop)  [em caso de Loop o VXC da fun. geradora sempre vai ser -1]
             this.minRadius,
             this.maxSpan,
             this.crispness
@@ -181,24 +252,18 @@ public class DrawBlob : DrawLine
         base.Awake();
 
         // change this to IDs
-        computeShader.SetVector( "parameter", this.configParameter );
-        computeShader.SetVector( "scale",     this.scaleParameter  );
-        computeShader.SetVector( "phase",     this.phaseParameter  );
-
-        int CSHelperKernel = computeShader.FindKernel( cs_helper_id );
-        computeShader.SetBuffer( CSHelperKernel, ShaderIDs.vertices, vertexBuffer );
-
-        int CSLoopKernel = computeShader.FindKernel( cs_loop_id );
-        computeShader.SetBuffer( CSLoopKernel, ShaderIDs.vertices, vertexBuffer );
+        mainCompShader.SetVector( "parameter", this.configParameter );
+        mainCompShader.SetVector( "scale",     this.scaleParameter  );
+        mainCompShader.SetVector( "phase",     this.phaseParameter  );
 
 		// Start CS (dim [vertexCount, 1, 1]) and fill vertex buffer
-		computeShader.Dispatch( CSKernelMain, this.vertexCount-1, 1, 1 );
+		mainCompShader.Dispatch( CSKernelMain, this.vertexCount-1, 1, 1 );
 
-        // Start bisection calculator
-        computeShader.Dispatch( CSHelperKernel, this.vertexCount-1, 1, 1 );
+        this.EndAwake();
+    }
 
-        // Start loop maker
-        computeShader.Dispatch( CSLoopKernel, 1, 1, 1 );
-
+    public override void EndAwake()
+    {
+        base.EndAwake();
     }
 }

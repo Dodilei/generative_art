@@ -1,0 +1,52 @@
+#pragma kernel BisecCalc
+#pragma kernel LoopCloser
+
+// data struc which will be sent to VS
+struct c2v 
+{
+	float4 vertex : SV_POSITION;
+	float width : TEXCOORD0;
+	float4 color : TEXCOORD1;
+	float2 bisection : TEXCOORD2;
+};
+
+RWStructuredBuffer<c2v> _Vertices;
+
+uint _vxCount;
+float4 line_width;
+float4 line_color;
+
+
+[numthreads(1,1,1)]
+void BisecCalc( uint ti : SV_DispatchThreadID )
+{
+	uint vxCount;
+	vxCount = _vxCount-1;
+
+	float2 before;
+	float2 center;
+	float2 after;
+
+	float2 orto;
+	float2 bisec;
+
+	before = _Vertices[ (( (uint)ti ) + vxCount-1) % vxCount ].vertex.xy;
+	after = _Vertices[ (( (uint)ti )+1) % vxCount ].vertex.xy;
+
+	center = _Vertices[ ti ].vertex.xy;
+
+	bisec = after - before;
+	bisec = float2(-bisec.y, bisec.x);
+
+	orto = after - center;
+	orto = float2(-orto.y, orto.x);
+
+	_Vertices[ ti ].bisection = bisec*length(orto)*rcp(dot(bisec, orto));
+}
+
+
+[numthreads(1, 1, 1)]
+void LoopCloser( uint ti : SV_DispatchThreadID )
+{
+	_Vertices[_vxCount-1] = _Vertices[0];
+}
